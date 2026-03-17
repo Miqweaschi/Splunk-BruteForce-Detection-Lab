@@ -2,7 +2,7 @@
 
 ## Descrizione
 
-Questa guida documenta la configurazione di un sistema di monitoraggio per rilevare attacchi brute force su SSH usando Splunk su Parrot OS (macchina virtuale VirtualBox).
+Questa guida documenta la configurazione di un sistema di monitoraggio per rilevare attacchi brute force su SSH usando Splunk su Parrot OS.
 
 ---
 
