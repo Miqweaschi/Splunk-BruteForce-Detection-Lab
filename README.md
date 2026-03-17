@@ -18,7 +18,7 @@ Questa guida documenta la configurazione di un sistema di monitoraggio per rilev
 ### 1. Avviare Splunk
 
 ```
-sudo /opt/splunk/bin/splunk start
+sudo /opt/splunk/bin/splunk start --run-as-root
 ```
 
 Interfaccia web disponibile su: `http://localhost:8000`
