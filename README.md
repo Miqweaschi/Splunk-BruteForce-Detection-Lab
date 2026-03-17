@@ -10,7 +10,6 @@ Questa guida documenta la configurazione di un sistema di monitoraggio per rilev
 
 - Parrot OS (VirtualBox)
 - Splunk installato in `/opt/splunk`
-- Connessione di rete attiva
 
 ---
 
@@ -18,52 +17,24 @@ Questa guida documenta la configurazione di un sistema di monitoraggio per rilev
 
 ### 1. Avviare Splunk
 
-```bash
+```
 sudo /opt/splunk/bin/splunk start
 ```
 
 Interfaccia web disponibile su: `http://localhost:8000`
 
-Per avviare Splunk automaticamente ad ogni riavvio:
-
-```bash
-sudo /opt/splunk/bin/splunk enable boot-start
-```
-
 ### 2. Avviare SSH
 
-```bash
+```
 sudo systemctl start ssh
 sudo systemctl enable ssh
 ```
 
-### 3. Avviare VBoxClient (clipboard VirtualBox)
-
-```bash
-sudo systemctl enable vboxclipboard
-sudo systemctl start vboxclipboard
-```
-
-Creare il file di servizio in `/etc/systemd/system/vboxclipboard.service`:
-
-```ini
-[Unit]
-Description=VirtualBox Clipboard
-After=graphical.target
-
-[Service]
-ExecStart=/usr/bin/VBoxClient --clipboard
-Restart=on-failure
-
-[Install]
-WantedBy=graphical.target
-```
-
-### 4. Installare rsyslog
+### 3. Installare rsyslog
 
 rsyslog non è installato di default su Parrot OS. È necessario per scrivere i log in formato testo leggibile da Splunk.
 
-```bash
+```
 sudo apt update && sudo apt install rsyslog -y
 sudo systemctl enable rsyslog
 sudo systemctl start rsyslog
@@ -73,7 +44,7 @@ sudo systemctl start rsyslog
 
 ## Configurazione Splunk
 
-### 5. Aggiungere il Data Input
+### 4. Aggiungere il Data Input
 
 1. Vai su **Settings → Data Inputs → Files & Directories → New**
 2. Path: `/var/log/auth.log`
@@ -83,7 +54,7 @@ sudo systemctl start rsyslog
 
 ### 6. Verificare che i dati arrivino
 
-```spl
+```
 index=main source="/var/log/auth.log"
 | head 10
 ```
@@ -92,7 +63,6 @@ index=main source="/var/log/auth.log"
 
 ## Query SPL per il rilevamento brute force
 
-> Nota: il sourcetype è `linux_secure` e il rex usa un pattern che gestisce sia IPv4 che IPv6.
 
 ### Tentativi falliti per IP
 
@@ -103,113 +73,148 @@ index=main sourcetype=linux_secure "Failed password"
 | sort -tentativi
 ```
 
-### Brute force attivo — soglia 5 tentativi in 5 minuti
-
-```spl
-index=main sourcetype=linux_secure "Failed password"
-| rex "from\s+(?<src_ip>[a-f0-9:\.]+)\s+port"
-| bin _time span=5m
-| stats count as tentativi by src_ip, _time
-| where tentativi >= 5
-| sort -tentativi
-```
-
-### Andamento nel tempo (grafico a linee)
-
-```spl
-index=main sourcetype=linux_secure "Failed password"
-| timechart span=5m count as tentativi_falliti
-```
-
-### Login riusciti dopo fallimenti (possibile breach)
-
-```spl
-index=main sourcetype=linux_secure sshd
-| stats count(eval(match(_raw,"Failed password"))) AS failed
-       count(eval(match(_raw,"Accepted password"))) AS success
-       by src_ip
-| where failed > 3 AND success > 0
-| sort -failed
-```
-
----
 
 ## Dashboard
 
 ### Creare la dashboard
 
 1. Vai su **Dashboards → Create New Dashboard**
-2. Nome: `SSH Brute Force Monitor`
+2. Nome: `SSH Brute Force Detection`
 3. Aggiungi pannelli con le query sopra
 
-### Pannelli consigliati
+```XML
+<dashboard version="1.1" theme="dark" refresh="3">
 
-| Pannello | Query | Tipo |
-|---|---|---|
-| Tentativi nel tempo | timechart | Line chart |
-| Top IP attaccanti | stats count by src_ip | Bar chart |
-| Brute force attivo | soglia 5 tentativi/5min | Table |
-| Breach potenziali | fallimenti + successi | Table |
+  <label>MINIMAL SECURITY OPS</label>
 
-### Refresh automatico ogni 10 secondi
+  <row>
 
-Modifica il sorgente XML della dashboard:
+    <panel>
 
-1. **Edit → Edit Source**
-2. Modifica il tag iniziale:
+      <html>
 
-```xml
-<dashboard refresh="10">
+        <style>
+
+        
+
+          .dashboard-body { background: #0a0a0c !important; }
+
+          .dashboard-panel { 
+
+            background: #111116 !important; 
+
+            border: 1px solid #00d4ff !important;
+
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.1) !important;
+
+          }
+
+   
+
+          .table { border: none !important; }
+
+          .table th { 
+
+            background: #1a1a20 !important; 
+
+            color: #00d4ff !important; 
+
+            text-transform: uppercase;
+
+            font-size: 12px !important;
+
+          }
+
+          .table td { color: #ffffff !important; border-top: 1px solid #222 !important; }
+
+          .panel-title { color: #00d4ff !important; font-family: monospace; }
+
+        </style>
+
+      </html>
+
+    </panel>
+
+  </row>
+
+  
+
+  <row>
+
+    <panel>
+
+      <title>ATTACCHI RILEVATI</title>
+
+      <single>
+
+        <search>
+
+          <query>index=main sourcetype=linux_secure "Failed password" | stats count</query>
+
+          <earliest>-24h@h</earliest>
+
+          <latest>now</latest>
+
+        </search>
+
+        <option name="colorMode">none</option>
+
+        <option name="drilldown">none</option>
+
+        <option name="rangeColors">["0x00d4ff","0x00d4ff"]</option>
+
+        <option name="underLabel">FAILED LOGINS</option>
+
+      </single>
+
+    </panel>
+
+
+
+    <panel >
+
+      <title>LOG SORGENTI COMPROMESSE</title>
+
+      <table>
+
+        <search>
+
+          <query>
+
+            index=main sourcetype=linux_secure "Failed password" 
+
+            | rex "from\s+(?&lt;src_ip&gt;[a-f0-9:\.]+)\s+port"
+
+            | table src_ip, _raw
+
+          </query>
+
+          <earliest>-24h@h</earliest>
+
+          <latest>now</latest>
+
+        </search>
+
+        <option name="count">10</option>
+
+        <option name="dataOverlayMode">none</option>
+
+        <option name="drilldown">none</option>
+
+        <option name="percentagesRow">false</option>
+
+        <option name="rowNumbers">false</option>
+
+        <option name="wrap">false</option>
+
+      </table>
+
+    </panel>
+
+  </row>
+
+</dashboard>
 ```
-
-3. Salva
-
----
-
-## Alert in tempo reale
-
-### Configurare un Alert
-
-1. Esegui questa query nella Search:
-
-```spl
-index=main sourcetype=linux_secure "Failed password"
-| rex "from\s+(?<src_ip>[a-f0-9:\.]+)\s+port"
-| stats count as tentativi by src_ip
-| where tentativi >= 10
-```
-
-2. Clicca **Save As → Alert**
-3. Configura:
-   - **Title:** `Brute Force SSH`
-   - **Alert type:** `Scheduled` → ogni `1 minute`
-   - **Trigger condition:** `Number of Results > 0`
-4. In **Trigger Actions** scegli: `Add to Triggered Alerts`, `Send Email` o `Run a Script`
-5. Salva
-
-### Visualizzare gli alert scattati
-
-**Activity → Triggered Alerts**
-
----
-
-## Flusso completo
-
-```
-SSH genera log
-    ↓
-rsyslog scrive in /var/log/auth.log
-    ↓
-Splunk indicizza (sourcetype: linux_secure)
-    ↓
-Query SPL rilevano brute force
-    ↓
-Dashboard aggiornata ogni 10 secondi
-    ↓
-Alert notifica se tentativi >= 10
-```
-
----
 
 ## Note
 
