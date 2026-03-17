@@ -79,13 +79,17 @@ index=main sourcetype=linux_secure "Failed password"
 ### Creare la dashboard
 
 1. Vai su **Dashboards → Create New Dashboard**
-2. Nome: `SSH Brute Force Detection`
+2. Nome: `SSH-BruteForceDetection`
 3. Aggiungi pannelli con le query sopra
+
+
+<img width="1920" height="1020" alt="Dashboard-IMG" src="https://github.com/user-attachments/assets/da445202-ff25-43c0-9f59-a2af7bb30c36" />
+
 
 ```XML
 <dashboard version="1.1" theme="dark" refresh="3">
 
-  <label>MINIMAL SECURITY OPS</label>
+  <label>SSH-BruteForceDetection</label>
 
   <row>
 
