@@ -168,8 +168,8 @@ index=main sourcetype=linux_secure "Failed password"
 </dashboard>
 
 ```
-
-##Alert
+---
+## Alert
 
 Ho creato un alert basandomi su questa Query:
 
