@@ -1,4 +1,7 @@
 # SSH Brute Force Monitoring con Splunk su Parrot OS
+![Splunk](https://img.shields.io/badge/Splunk-Free%20Tier-orange)
+![OS](https://img.shields.io/badge/OS-Parrot%20Security-green)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
 ## Descrizione
 
