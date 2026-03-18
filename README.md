@@ -129,7 +129,7 @@ index=main sourcetype=linux_secure "Failed password"
 
           }
 
-          .table td { color: #ffffff !important; border-top: 1px solid #222 !important; }
+          .table td { color: #fffffff !important; border-top: 1px solid #222 !important; }
 
           .panel-title { color: #00d4ff !important; font-family: monospace; }
 
