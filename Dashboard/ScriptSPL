@@ -1,0 +1,6 @@
+index=main sourcetype=linux_secure "Failed password" 
+| rex "from\s+(?<src_ip>[a-f0-9:\.]+)\s+port"
+| stats count as tentativi by src_ip
+| sort -tentativi   
+
+## SCRIPT USATO PER MOSTRARE TUTTI I TENTATIVI FALLITI DI UN SINGOLO HOST
