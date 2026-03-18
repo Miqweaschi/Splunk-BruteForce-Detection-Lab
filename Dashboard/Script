@@ -40,7 +40,7 @@
   </row>
 
   <row>
-    <panel width="20">
+    <panel>
       <title>ATTACCHI</title>
       <single>
         <search>
@@ -55,7 +55,7 @@
       </single>
     </panel>
 
-    <panel width="80">
+    <panel>
       <title>LOG SORGENTI</title>
       <table>
         <search>
