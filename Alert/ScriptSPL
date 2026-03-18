@@ -1,0 +1,4 @@
+index=main "Failed password"
+| rex "from\s+(?<src_ip>[a-f0-9:\.]+)\s+port"
+
+## SCRIPT CHE MOSTRA TUTTI I TENTATIVI FALLITI
