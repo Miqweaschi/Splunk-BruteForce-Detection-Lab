@@ -178,7 +178,7 @@ index=main "Failed password"
 | rex "from\s+(?<src_ip>[a-f0-9:\.]+)\s+port"
 ```
 
-Ho impostato l'alert in modo che se rileva 10 tentativi in un minuto invia tramite uno script viene inviato un messaggio ad un bot su telegram.   
+Ho impostato l'alert in modo che se rileva 10 tentativi in un minuto invia tramite uno script un messaggio ad un bot su telegram.   
 per motivi di privacy non posso mostrarvi lo script perchè il bot è personale ma è molto semplice trovare un tutorial su come creare un bot ed usare le sue api su linux.    
 
 
